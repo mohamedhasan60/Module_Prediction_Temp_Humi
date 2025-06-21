@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 # تحميل الموديل و LabelEncoder
-model = load_model('climate_plant_model.keras')  # تأكد من المسار
+model = load_model('climate_plant_model.keras')
 le = joblib.load('label_encoder.pkl')
 
 # تحميل البيانات وتطبيعها
@@ -57,7 +57,7 @@ def predict_plant():
         details = get_plant_details(plant_name)
         image_path = details.get("image_path", "images/default.jpg")
         image_filename = image_path.split('/')[-1]
-        image_url = f"https://your-project.up.railway.app/images/{image_filename}"  # تعديل URL
+        image_url = f"https://your-project.up.railway.app/images/{image_filename}"
 
         plant_data = {
             "plant_name": plant_name,
