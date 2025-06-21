@@ -38,6 +38,10 @@ def get_plant_details(plant_name):
     details["details"] = details["details"].replace("°C", "C")
     return details
 
+@app.route('/')
+def home():
+    return '✅ API is working. Use /predict_plant?Temperature=25&Humidity=60'
+
 @app.route('/predict_plant', methods=['GET'])
 def predict_plant():
     temperature = float(request.args.get('Temperature', 0))
@@ -77,5 +81,5 @@ def serve_image(filename):
     return send_from_directory('images', filename)
 
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    port = int(os.getenv("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
