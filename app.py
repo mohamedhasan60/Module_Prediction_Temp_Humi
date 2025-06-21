@@ -61,7 +61,7 @@ def predict_plant():
         details = get_plant_details(plant_name)
         image_path = details.get("image_path", "images/default.jpg")
         image_filename = image_path.split('/')[-1]
-        image_url = f"https://your-project.up.railway.app/images/{image_filename}"
+        image_url = f"https://web-production-856c2.up.railway.app/images/{image_filename}"
 
         plant_data = {
             "plant_name": plant_name,
