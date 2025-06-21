@@ -6,12 +6,13 @@ from sklearn.preprocessing import StandardScaler
 import joblib
 from flask_cors import CORS
 import json
+import os
 
 app = Flask(__name__)
 CORS(app)
 
 # تحميل الموديل و LabelEncoder
-model = load_model('climate_plant_model.keras')
+model = load_model('climate_plant_model.keras')  # تأكد من المسار
 le = joblib.load('label_encoder.pkl')
 
 # تحميل البيانات وتطبيعها
@@ -34,7 +35,6 @@ def get_plant_details(plant_name):
         "harvesting_method": "Unknown",
         "image_path": "images/default.jpg"
     })
-    # استبدال °C بـ C
     details["details"] = details["details"].replace("°C", "C")
     return details
 
@@ -46,9 +46,7 @@ def predict_plant():
     input_data = np.array([[temperature, humidity]])
     input_data = scaler.transform(input_data)
 
-    # التنبؤ
     prediction = model.predict(input_data)
-    # أخذ أعلى 3 نباتات بناءً على الاحتماليات
     top_n = 3
     top_indices = np.argsort(prediction[0])[::-1][:top_n]
     plant_names = le.inverse_transform(top_indices)
@@ -57,11 +55,9 @@ def predict_plant():
     for plant_name in plant_names:
         plant_name = plant_name.strip()
         details = get_plant_details(plant_name)
-
-        # استخراج اسم الملف من image_path
         image_path = details.get("image_path", "images/default.jpg")
         image_filename = image_path.split('/')[-1]
-        image_url = f"http://{request.host}/images/{image_filename}"
+        image_url = f"https://your-project.up.railway.app/images/{image_filename}"  # تعديل URL
 
         plant_data = {
             "plant_name": plant_name,
@@ -74,11 +70,12 @@ def predict_plant():
         }
         response.append(plant_data)
 
-    return jsonify(response)  # إزالة ensure_ascii=False
+    return jsonify(response)
 
 @app.route('/images/<path:filename>')
 def serve_image(filename):
     return send_from_directory('images', filename)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.getenv("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
