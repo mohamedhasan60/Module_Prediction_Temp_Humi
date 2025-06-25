@@ -7,21 +7,28 @@ import joblib
 from flask_cors import CORS
 import json
 import os
+import os, csv
+from datetime import datetime
+from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 CORS(app)
 
-# تحميل الموديل و LabelEncoder
+LOG_FILE = "env_log.csv"
+
+if not os.path.isfile(LOG_FILE):
+    with open(LOG_FILE, "w", newline="") as f:
+        csv.writer(f).writerow(["timestamp", "temperature", "humidity"])
+        
+
 model = load_model('climate_plant_model.keras')
 le = joblib.load('label_encoder.pkl')
 
-# تحميل البيانات وتطبيعها
 data = pd.read_csv('climate_plant_dataset.csv')
 X = data[['Temperature', 'Humidity']]
 scaler = StandardScaler()
 scaler.fit(X)
 
-# قراءة ملف JSON
 with open('plant_info.json', 'r', encoding='utf-8') as f:
     plant_info = json.load(f)
 
@@ -75,6 +82,32 @@ def predict_plant():
         response.append(plant_data)
 
     return jsonify(response)
+
+@app.route('/log_environment', methods=['POST'])
+def log_environment():
+    data = request.get_json(silent=True)
+
+    if not data or "temperature" not in data or "humidity" not in data:
+        return jsonify({"error": "Must Sent : temperature or humidity"}), 400
+
+    try:
+        temp = float(data['temperature'])
+        hum  = float(data['humidity'])
+    except ValueError:
+        return jsonify({"error": "Values ​​must be numbers"}), 400
+
+    timestamp = datetime.utcnow().isoformat()
+
+    
+    with open(LOG_FILE, "a", newline="") as f:
+        csv.writer(f).writerow([timestamp, temp, hum])
+
+    
+    with open(LOG_FILE) as f:
+        rows_logged = sum(1 for _ in f) - 1   
+
+    return jsonify({"status": " Save Done! ", "rows": rows_logged}), 200
+
 
 @app.route('/images/<path:filename>')
 def serve_image(filename):
