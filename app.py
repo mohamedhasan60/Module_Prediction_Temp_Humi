@@ -113,6 +113,22 @@ def log_environment():
 def serve_image(filename):
     return send_from_directory('images', filename)
 
+
+@app.route('/get_last_environment', methods=['GET'])
+def get_last_environment():
+    """
+    يرجع آخر صف فقط (أحدث قراءة)
+    """
+    if not os.path.isfile(LOG_FILE):
+        return jsonify({}), 200
+
+    with open(LOG_FILE) as f:
+        data = list(csv.DictReader(f))
+
+    return jsonify(data[-1] if data else {}), 200
+
+
+
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
